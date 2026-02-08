@@ -11,7 +11,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('sonarserver') {
                     sh '''
                     sonar-scanner \
                     -Dsonar.projectKey=hrms-devops-demo \
