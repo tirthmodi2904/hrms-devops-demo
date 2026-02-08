@@ -5,7 +5,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/tirthmodi2904/hrms-devops-demo.git'
+                git branch: 'main', url: 'https://github.com/tirthmodi2904/hrms-devops-demo.git'
             }
         }
 
