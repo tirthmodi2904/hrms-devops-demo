@@ -10,16 +10,16 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarserver') {
-                    sh '''
-                    sonar-scanner \
-                    -Dsonar.projectKey=hrms-devops-demo \
-                    -Dsonar.sources=.
-                    '''
-                }
+    steps {
+        script {
+            def scannerHome = tool 'SonarScanner'
+            withSonarQubeEnv('sonarserver') {
+                sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=hrms-devops-demo -Dsonar.sources=."
             }
         }
+    }
+}
+
 
         stage('Build Website') {
             steps {
