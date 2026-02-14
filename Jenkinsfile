@@ -41,14 +41,30 @@ pipeline {
                 sh 'zip -r hrms-build.zip *.html assets || true'
             }
         }
+
+        stage('Upload Artifact to Nexus') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'nexuslogin',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh """
+                    curl -v -u $NEXUS_USER:$NEXUS_PASS \
+                    --upload-file hrms-build.zip \
+                    http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
+                    """
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'HRMS CI Pipeline SUCCESS!'
+            echo 'HRMS CI + Nexus Upload SUCCESS!'
         }
         failure {
-            echo 'HRMS CI Pipeline FAILED!'
+            echo 'Pipeline FAILED!'
         }
     }
 }
