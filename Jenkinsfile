@@ -38,6 +38,7 @@ pipeline {
 
         stage('Build Artifact') {
             steps {
+                sh 'rm -f hrms-build.zip'
                 sh 'zip -r hrms-build.zip *.html assets || true'
             }
         }
@@ -49,11 +50,11 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    sh """
-                    curl -v -u $NEXUS_USER:$NEXUS_PASS \
+                    sh '''
+                    curl -u $NEXUS_USER:$NEXUS_PASS \
                     --upload-file hrms-build.zip \
                     http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
-                    """
+                    '''
                 }
             }
         }
@@ -65,19 +66,20 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    sh """
+                    sh '''
                     curl -u $NEXUS_USER:$NEXUS_PASS \
                     -o hrms-build.zip \
                     http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
 
                     scp hrms-build.zip ubuntu@172.31.29.188:/var/www/hrms/
 
-                    ssh ubuntu@172.31.29.188 '
+                    ssh ubuntu@172.31.29.188 "
                         cd /var/www/hrms &&
+                        rm -rf *.html assets &&
                         unzip -o hrms-build.zip &&
                         sudo systemctl restart nginx
-                    '
-                    """
+                    "
+                    '''
                 }
             }
         }
