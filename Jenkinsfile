@@ -57,11 +57,35 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to EC2') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'nexuslogin',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh """
+                    curl -u $NEXUS_USER:$NEXUS_PASS \
+                    -o hrms-build.zip \
+                    http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
+
+                    scp hrms-build.zip ubuntu@172.31.29.188:/var/www/hrms/
+
+                    ssh ubuntu@172.31.29.188 '
+                        cd /var/www/hrms &&
+                        unzip -o hrms-build.zip &&
+                        sudo systemctl restart nginx
+                    '
+                    """
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'HRMS CI + Nexus Upload SUCCESS!'
+            echo 'FULL CI/CD PIPELINE SUCCESS!'
         }
         failure {
             echo 'Pipeline FAILED!'
