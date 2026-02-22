@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        VERSION = "1.0.${BUILD_NUMBER}"
+        ARTIFACT = "hrms-build-${VERSION}.zip"
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -38,12 +43,12 @@ pipeline {
 
         stage('Build Artifact') {
             steps {
-                sh 'rm -f hrms-build.zip'
-                sh 'zip -r hrms-build.zip *.html assets || true'
+                sh 'rm -f *.zip'
+                sh "zip -r ${ARTIFACT} *.html assets || true"
             }
         }
 
-        stage('Upload Artifact to Nexus') {
+        stage('Upload Artifact to Nexus (Versioned)') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'nexuslogin',
@@ -52,8 +57,8 @@ pipeline {
                 )]) {
                     sh '''
                     curl -u $NEXUS_USER:$NEXUS_PASS \
-                    --upload-file hrms-build.zip \
-                    http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
+                    --upload-file ${ARTIFACT} \
+                    http://172.31.16.65:8081/repository/hrms-repo/${VERSION}/${ARTIFACT}
                     '''
                 }
             }
@@ -68,15 +73,15 @@ pipeline {
                 )]) {
                     sh '''
                     curl -u $NEXUS_USER:$NEXUS_PASS \
-                    -o hrms-build.zip \
-                    http://172.31.16.65:8081/repository/hrms-repo/hrms-build.zip
+                    -o ${ARTIFACT} \
+                    http://172.31.16.65:8081/repository/hrms-repo/${VERSION}/${ARTIFACT}
 
-                    scp hrms-build.zip ubuntu@172.31.29.188:/var/www/hrms/
+                    scp ${ARTIFACT} ubuntu@172.31.29.188:/var/www/hrms/
 
                     ssh ubuntu@172.31.29.188 "
                         cd /var/www/hrms &&
                         rm -rf *.html assets &&
-                        unzip -o hrms-build.zip &&
+                        unzip -o ${ARTIFACT} &&
                         sudo systemctl restart nginx
                     "
                     '''
@@ -87,10 +92,7 @@ pipeline {
 
     post {
         success {
-            echo 'FULL CI/CD PIPELINE SUCCESS!'
-        }
-        failure {
-            echo 'Pipeline FAILED!'
+            echo "VERSION ${VERSION} DEPLOYED SUCCESS"
         }
     }
 }
