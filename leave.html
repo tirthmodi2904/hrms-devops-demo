@@ -446,20 +446,20 @@
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Remove active class from all buttons
+                    
                     filterButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
+                    
                     this.classList.add('active');
                     
                     const filter = this.textContent;
                     alert(`Filtering by: ${filter}`);
-                    // In a real application, this would filter the table
+                    
                 });
             });
             
             document.querySelector('button.bg-blue-600').addEventListener('click', function() {
                 alert('Opening leave application form...');
-                // In a real application, this would open a modal or navigate to a form
+            
             });
         });
     </script>
